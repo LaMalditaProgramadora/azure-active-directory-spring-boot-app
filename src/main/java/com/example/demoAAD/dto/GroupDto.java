@@ -1,6 +1,5 @@
 package com.example.demoAAD.dto;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 /**
@@ -10,9 +9,7 @@ import lombok.Data;
 @Data
 public class GroupDto {
     
-    @JsonProperty("@odata.type")
-    private String dataType;
-    
-    private String id;
-    private String displayName;
+    private String appRoleId;
+    private String principalDisplayName;
+    private String resourceId;
 }

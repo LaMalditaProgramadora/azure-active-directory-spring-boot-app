@@ -33,8 +33,11 @@ public class LoginService {
     @Value("${AZURE_TENANT_ID}")
     private String AZURE_TENANT_ID;
 
-    @Value("${AZURE_CLIENT_ID}")
-    private String AZURE_CLIENT_ID;
+    @Value("${AZURE_APP_ID}")
+    private String AZURE_APP_ID;
+
+    @Value("${AZURE_APP_OBJECT_ID}")
+    private String AZURE_APP_OBJECT_ID;
 
     public ResponseDto loginUser(LoginDto loginDto) {
         ResponseDto response = new ResponseDto(1, Constants.MESSAGE_RESULT_OK, null);
@@ -54,12 +57,10 @@ public class LoginService {
         ExecutorService service = Executors.newFixedThreadPool(1);
         AuthenticationContext context
                 = new AuthenticationContext(loginMicrosoftOnlineUrl + "/" + AZURE_TENANT_ID, true, service);
-        System.out.println(AZURE_CLIENT_ID);
         Future<AuthenticationResult> resultFuture = context.acquireToken(
-                graphMicrosoftUrl, AZURE_CLIENT_ID, loginDto.getUsername(), loginDto.getPassword(),
+                graphMicrosoftUrl, AZURE_APP_ID, loginDto.getUsername(), loginDto.getPassword(),
                 null);
         return resultFuture.get();
-
     }
 
     public List<String> getRoles(String idToken) {
@@ -75,18 +76,22 @@ public class LoginService {
         return roles;
     }
 
-    public List<GroupDto> getGroups(String idUser, String accessToken) {
+    public List<String> getGroups(String idUser, String accessToken) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "Bearer " + accessToken);
         ResponseEntity<ResponseGroupDto> responseGroupDto
                 = restTemplate.exchange(
-                        graphMicrosoftMemberOfUrl + idUser + "/memberOf",
+                        graphMicrosoftMemberOfUrl + idUser + "/appRoleAssignments",
                         HttpMethod.GET,
                         new HttpEntity(headers),
                         ResponseGroupDto.class);
-        List<GroupDto> groups = responseGroupDto.getBody().getValue();
-        groups.removeIf(p -> !p.getDataType().equals("#microsoft.graph.directoryRole"));
-        return groups;
+        List<String> groupsString = new ArrayList<>();
+        responseGroupDto.getBody().getValue().forEach((group) -> {
+            if (group.getResourceId().equals(AZURE_APP_OBJECT_ID) && !groupsString.contains(group.getPrincipalDisplayName())) {
+                groupsString.add(group.getPrincipalDisplayName());
+            }
+        });
+        return groupsString;
     }
 
 }

@@ -13,6 +13,6 @@ import lombok.Data;
 public class AuthDto {
     private String id;
     private String username;
-    private List<GroupDto> groups;
+    private List<String> groups;
     private List<String> roles;
 }

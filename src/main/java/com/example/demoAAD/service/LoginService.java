@@ -68,7 +68,7 @@ public class LoginService {
         String[] chunks = idToken.split("\\.");
         String payload = new String(decoder.decode(chunks[1]));
         JsonObject jsonObject = new JsonParser().parse(payload).getAsJsonObject();
-        JsonArray rolesJson = jsonObject.get("roles").getAsJsonArray();
+        JsonArray rolesJson = jsonObject.get("roles") == null ? new JsonArray() : jsonObject.get("roles").getAsJsonArray();
         List<String> roles = new ArrayList<>();
         rolesJson.forEach((t) -> {
             roles.add(t.getAsString());

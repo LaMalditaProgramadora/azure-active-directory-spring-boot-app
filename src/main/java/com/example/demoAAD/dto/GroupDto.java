@@ -12,4 +12,5 @@ public class GroupDto {
     private String appRoleId;
     private String principalDisplayName;
     private String resourceId;
+    private String principalType;
 }

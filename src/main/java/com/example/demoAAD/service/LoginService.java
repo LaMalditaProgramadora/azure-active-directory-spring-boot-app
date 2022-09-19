@@ -1,34 +1,19 @@
 package com.example.demoAAD.service;
 
 import com.example.demoAAD.dto.*;
-import com.example.demoAAD.util.Constants;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.microsoft.aad.adal4j.AuthenticationContext;
 import com.microsoft.aad.adal4j.AuthenticationResult;
-import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 @Service
 public class LoginService {
 
     private final String loginMicrosoftOnlineUrl = "https://login.microsoftonline.com";
     private final String graphMicrosoftUrl = "https://graph.microsoft.com";
-    private final String graphMicrosoftMemberOfUrl = "https://graph.microsoft.com/v1.0/users/";
-
-    @Autowired
-    private RestTemplate restTemplate;
 
     @Value("${AZURE_TENANT_ID}")
     private String AZURE_TENANT_ID;
@@ -36,21 +21,11 @@ public class LoginService {
     @Value("${AZURE_APP_ID}")
     private String AZURE_APP_ID;
 
-    @Value("${AZURE_APP_OBJECT_ID}")
-    private String AZURE_APP_OBJECT_ID;
-
-    public ResponseDto loginUser(LoginDto loginDto) {
-        ResponseDto response = new ResponseDto(1, Constants.MESSAGE_RESULT_OK, null);
-        try {
-            AuthenticationResult result = getAuthResult(loginDto);
-            String idUser = result.getUserInfo().getUniqueId();
-            String accessToken = result.getAccessToken();
-            AuthDto authDto = new AuthDto(idUser, loginDto.getUsername(), getGroups(idUser, accessToken), getRoles(result.getIdToken()));
-            response.setResult(authDto);
-        } catch (Exception e) {
-            response = new ResponseDto(-1, e.getMessage(), null);
-        }
-        return response;
+    public AuthDto loginUser(LoginDto loginDto) throws Exception {
+        AuthenticationResult result = getAuthResult(loginDto);
+        String idUser = result.getUserInfo().getUniqueId();
+        AuthDto authDto = new AuthDto(idUser, loginDto.getUsername(), result.getIdToken(), result.getAccessToken(), null, null);
+        return authDto;
     }
 
     public AuthenticationResult getAuthResult(LoginDto loginDto) throws Exception {
@@ -62,36 +37,5 @@ public class LoginService {
                 null);
         return resultFuture.get();
     }
-
-    public List<String> getRoles(String idToken) {
-        Base64.Decoder decoder = Base64.getUrlDecoder();
-        String[] chunks = idToken.split("\\.");
-        String payload = new String(decoder.decode(chunks[1]));
-        JsonObject jsonObject = new JsonParser().parse(payload).getAsJsonObject();
-        JsonArray rolesJson = jsonObject.get("roles") == null ? new JsonArray() : jsonObject.get("roles").getAsJsonArray();
-        List<String> roles = new ArrayList<>();
-        rolesJson.forEach((t) -> {
-            roles.add(t.getAsString());
-        });
-        return roles;
-    }
-
-    public List<String> getGroups(String idUser, String accessToken) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + accessToken);
-        ResponseEntity<ResponseGroupDto> responseGroupDto
-                = restTemplate.exchange(
-                        graphMicrosoftMemberOfUrl + idUser + "/appRoleAssignments",
-                        HttpMethod.GET,
-                        new HttpEntity(headers),
-                        ResponseGroupDto.class);
-        List<String> groupsString = new ArrayList<>();
-        responseGroupDto.getBody().getValue().forEach((group) -> {
-            if (group.getResourceId().equals(AZURE_APP_OBJECT_ID) && !groupsString.contains(group.getPrincipalDisplayName())) {
-                groupsString.add(group.getPrincipalDisplayName());
-            }
-        });
-        return groupsString;
-    }
-
+    
 }

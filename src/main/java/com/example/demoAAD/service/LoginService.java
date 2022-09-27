@@ -20,6 +20,9 @@ public class LoginService {
 
     @Value("${AZURE_APP_ID}")
     private String AZURE_APP_ID;
+    
+    @Value("${AZURE_MFA:false}")
+    private boolean AZURE_MFA;
 
     public AuthDto loginUser(LoginDto loginDto) throws Exception {
         AuthenticationResult result = getAuthResult(loginDto);

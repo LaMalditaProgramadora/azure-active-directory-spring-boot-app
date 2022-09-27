@@ -1,5 +1,6 @@
 package com.example.demoAAD.service;
 
+import com.example.demoAAD.dto.AuthDto;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -15,14 +16,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class RolService {
 
-    public List<String> getRoles(String idToken) {
-        JsonObject jsonObject = getDecodePayload(idToken);
+    public AuthDto getRoles(AuthDto authDto) {
+        JsonObject jsonObject = getDecodePayload(authDto.getIdToken());
         JsonArray rolesJson = getRolesFromPayload(jsonObject);
-        List<String> roles = new ArrayList<>();
+
+        List< String> roles = new ArrayList<>();
         rolesJson.forEach((t) -> {
             roles.add(t.getAsString());
         });
-        return roles;
+        authDto.setRoles(roles);
+        authDto.setId(getIdFromPayload(jsonObject));
+        authDto.setUsername(getUsernameFromPayload(jsonObject));
+        return authDto;
     }
 
     private JsonObject getDecodePayload(String idToken) {
@@ -38,5 +43,13 @@ public class RolService {
             jsonRoles = jsonObject.get("roles").getAsJsonArray();
         }
         return jsonRoles;
+    }
+
+    private String getIdFromPayload(JsonObject jsonObject) {
+        return jsonObject.get("oid").getAsString();
+    }
+
+    private String getUsernameFromPayload(JsonObject jsonObject) {
+        return jsonObject.get("preferred_username").getAsString();
     }
 }

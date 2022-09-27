@@ -33,7 +33,7 @@ public class Config {
         return props;
     }
 
-    public static final String AUTHORITY = Config.getProperty("aad.authority");
+    public static final String AUTHORITY = "https://login.microsoftonline.com/" + Config.getProperty("aad.authority");
     public static final String CLIENT_ID = Config.getProperty("aad.clientId");
     public static final String SECRET = Config.getProperty("aad.secret");
     public static final String SCOPES = Config.getProperty("aad.scopes");

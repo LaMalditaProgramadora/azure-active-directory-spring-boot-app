@@ -14,7 +14,14 @@ import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+/**
+ * Implementation of IdentityContextAdapter for AuthHelper for use with Java
+ * HttpServletRequests/Responses MUST BE INSTANTIATED ONCE PER REQUEST IN WEB
+ * APPS / WEB APIs before passing to AuthHelper
+ */
+
 public class IdentityContextAdapterServlet implements IdentityContextAdapter, HttpSessionActivationListener {
+    private static Logger logger = Logger.getLogger(IdentityContextAdapterServlet.class.getName());
     private HttpSession session = null;
     private IdentityContextData context = null;
     private HttpServletRequest request = null;
@@ -26,12 +33,14 @@ public class IdentityContextAdapterServlet implements IdentityContextAdapter, Ht
         this.response = response;
     }
 
+    // load from session on session activation
     @Override
     public void sessionDidActivate(HttpSessionEvent se) {
         this.session = se.getSession();
         loadContext();
     }
 
+    // save to session on session passivation
     @Override
     public void sessionWillPassivate(HttpSessionEvent se) {
         this.session = se.getSession();
@@ -66,6 +75,7 @@ public class IdentityContextAdapterServlet implements IdentityContextAdapter, Ht
 
     @Override
     public void redirectUser(String location) throws IOException {
+        logger.log(Level.INFO, "Redirecting user to {0}", location);
         this.response.sendRedirect(location);
     }
 

@@ -2,10 +2,10 @@ package com.example.demoAAD.service;
 
 import com.example.demoAAD.dto.GroupDto;
 import com.example.demoAAD.dto.ResponseGroupDto;
+import com.example.demoAAD.helpers.Config;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -24,9 +24,6 @@ public class GroupService {
 
     @Autowired
     private RestTemplate restTemplate;
-
-    @Value("${AZURE_APP_OBJECT_ID}")
-    private String AZURE_APP_OBJECT_ID;
 
     public List<String> getGroups(String idUser, String accessToken) {
         List<String> groupsString = new ArrayList<String>();
@@ -54,7 +51,7 @@ public class GroupService {
     }
 
     private boolean isAppGroup(String resourceId, String principalType) {
-        return resourceId.equals(AZURE_APP_OBJECT_ID) && principalType.equals("Group");
+        return resourceId.equals(Config.OBJECT_ID) && principalType.equals("Group");
     }
 
 }

@@ -5,11 +5,6 @@ package com.example.demoAAD.helpers;
 
 import java.io.IOException;
 
-/**
- * Implement this so that AuthHelper can be customized to your needs!
- * This Sample project implements this in IdentityContextAdapterServlet.java
- * MUST BE INSTANTIATED ONCE PER REQUEST IN WEB APPS / WEB APIs before passing to AuthHelper
- */
 public interface IdentityContextAdapter {
     public void setContext(IdentityContextData context);
     public IdentityContextData getContext();
